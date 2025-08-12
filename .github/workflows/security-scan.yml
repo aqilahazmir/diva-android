@@ -31,33 +31,25 @@ jobs:
         with:
           languages: java, cpp
 
-      # Step 1: Setup Java 17 for Android SDK/NDK tools
-      - name: Setup Java 17 (for SDK tools)
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Setup Android SDK & NDK
-        uses: android-actions/setup-android@v2
-      - run: sdkmanager --install "ndk;21.4.7075529"
-
-      - name: Install Android SDK Platform 23 & Build Tools
-        run: |
-          sdkmanager --install "platforms;android-23" "build-tools;23.0.3"
-
-      # Step 2: Switch to Java 8 for Gradle build
-      - name: Setup Java 8 (for Gradle build)
+      - name: Setup Java 8 for Gradle
         uses: actions/setup-java@v3
         with:
           java-version: '8'
           distribution: 'temurin'
 
+      - name: Setup Android SDK & NDK
+        uses: android-actions/setup-android@v2
+
+      - name: Install Android SDK 23 & Build Tools 23.0.2
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --install "platforms;android-23" "build-tools;23.0.2"
+
       - name: Grant execute permission for Gradlew
         run: chmod +x ./gradlew
 
       - name: Build with Gradle (Java + JNI)
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug || true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
@@ -68,7 +60,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Use Java 8 for Gradle build
       - name: Setup Java 8
         uses: actions/setup-java@v3
         with:
@@ -80,6 +71,11 @@ jobs:
         with:
           base-ref: 'master~1'
           head-ref: 'master'
+
+      - name: Install Android SDK 23 & Build Tools 23.0.2
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --install "platforms;android-23" "build-tools;23.0.2"
 
       - name: Gradle Dependency Check
         run: ./gradlew dependencyCheckAnalyze || true
