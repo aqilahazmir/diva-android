@@ -1,0 +1,94 @@
+name: Security Scan (DIVA)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '0 15 * * 3'  # Every Wednesday
+
+jobs:
+  codeql-analysis:
+    name: CodeQL (Java + C/C++)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java', 'cpp' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - run: git checkout HEAD^2
+        if: ${{ github.event_name == 'pull_request' }}
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+      # Build steps for Java
+      - name: Setup Java
+        if: matrix.language == 'java'
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build Java
+        if: matrix.language == 'java'
+        run: ./gradlew build || true
+
+      # Build steps for C/C++
+      - name: Install C/C++ Build Tools
+        if: matrix.language == 'cpp'
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake
+
+      - name: Build C/C++
+        if: matrix.language == 'cpp'
+        run: |
+          mkdir build && cd build
+          cmake .. || true
+          make || true
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  dependency-scan:
+    name: Java Dependency Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+
+      - name: Gradle Dependency Check
+        run: ./gradlew dependencyCheckAnalyze || true
+
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: zricethezav/gitleaks-action@v2
+        with:
+          fail: true
