@@ -44,21 +44,23 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build Java
+      - name: Build Java (Android)
         if: matrix.language == 'java'
-        run: ./gradlew build || mvn clean install || true
+        working-directory: app
+        run: ../gradlew assembleDebug
 
       # Build steps for C/C++
       - name: Install C/C++ Build Tools
         if: matrix.language == 'cpp'
         run: sudo apt-get update && sudo apt-get install -y build-essential cmake
 
-      - name: Build C/C++
+      - name: Build C/C++ JNI code
         if: matrix.language == 'cpp'
+        working-directory: app/src/main/jni
         run: |
-          mkdir build && cd build
-          cmake .. || true
-          make || true
+          mkdir -p build && cd build
+          cmake ..
+          make
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
