@@ -31,19 +31,28 @@ jobs:
         with:
           languages: java, cpp
 
-      - name: Setup Java 8 for Gradle
+      # Install Android SDK using Java 17
+      - name: Setup Java 17 for Android SDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Android SDK 23 & Build Tools
+        run: |
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -fo sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip -q sdk.zip -d "$ANDROID_HOME/cmdline-tools"
+          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          yes | sdkmanager --licenses
+          sdkmanager --install "platforms;android-23" "build-tools;23.0.2"
+
+      # Switch to Java 8 for old Gradle build
+      - name: Setup Java 8 for Gradle build
         uses: actions/setup-java@v3
         with:
           java-version: '8'
           distribution: 'temurin'
-
-      - name: Setup Android SDK & NDK
-        uses: android-actions/setup-android@v2
-
-      - name: Install Android SDK 23 & Build Tools 23.0.2
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager --install "platforms;android-23" "build-tools;23.0.2"
 
       - name: Grant execute permission for Gradlew
         run: chmod +x ./gradlew
@@ -60,7 +69,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Java 8
+      # Java 17 for Android SDK install
+      - name: Setup Java 17 for Android SDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Android SDK 23 & Build Tools
+        run: |
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          curl -fo sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip -q sdk.zip -d "$ANDROID_HOME/cmdline-tools"
+          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          yes | sdkmanager --licenses
+          sdkmanager --install "platforms;android-23" "build-tools;23.0.2"
+
+      # Switch to Java 8 for Gradle dependency check
+      - name: Setup Java 8 for Gradle build
         uses: actions/setup-java@v3
         with:
           java-version: '8'
@@ -71,11 +97,6 @@ jobs:
         with:
           base-ref: 'master~1'
           head-ref: 'master'
-
-      - name: Install Android SDK 23 & Build Tools 23.0.2
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager --install "platforms;android-23" "build-tools;23.0.2"
 
       - name: Gradle Dependency Check
         run: ./gradlew dependencyCheckAnalyze || true
