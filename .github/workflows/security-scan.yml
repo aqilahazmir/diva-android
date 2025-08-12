@@ -31,16 +31,24 @@ jobs:
         with:
           languages: java, cpp
 
-      - name: Setup Java 11
+      - name: Setup Java 17 (for sdkmanager)
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Install NDK
+        run: sdkmanager "ndk;21.4.7075529"
+
+      # Switch back to Java 11 for Gradle build
+      - name: Setup Java 11 (for Gradle)
         uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'temurin'
-
-      - name: Setup Android SDK & NDK
-        uses: android-actions/setup-android@v2
-        with:
-          ndk-version: 21.4.7075529
 
       - name: Grant execute permission for Gradlew
         run: chmod +x ./gradlew
