@@ -37,15 +37,17 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
 
-      - name: Install Android SDK 23 & Build Tools
+      - name: Install Android SDK (Java 11-compatible tools)
         run: |
           mkdir -p "$ANDROID_HOME/cmdline-tools"
-          curl -fo sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip -q sdk.zip -d "$ANDROID_HOME/cmdline-tools"
-          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          cd "$ANDROID_HOME/cmdline-tools"
+          curl -fo sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
+          mkdir latest
+          unzip sdk.zip -d latest
+          rm sdk.zip
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
           yes | sdkmanager --licenses
-          sdkmanager --install "platforms;android-23" "build-tools;23.0.2"
+          sdkmanager --install "platforms;android-23" "build-tools;23.0.2" "ndk;21.4.7075529"
 
       - name: Grant execute permission for Gradlew
         run: chmod +x ./gradlew
@@ -68,15 +70,17 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
 
-      - name: Install Android SDK 23 & Build Tools
+      - name: Install Android SDK (Java 11-compatible tools)
         run: |
           mkdir -p "$ANDROID_HOME/cmdline-tools"
-          curl -fo sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip -q sdk.zip -d "$ANDROID_HOME/cmdline-tools"
-          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          cd "$ANDROID_HOME/cmdline-tools"
+          curl -fo sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip
+          mkdir latest
+          unzip sdk.zip -d latest
+          rm sdk.zip
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
           yes | sdkmanager --licenses
-          sdkmanager --install "platforms;android-23" "build-tools;23.0.2"
+          sdkmanager --install "platforms;android-23" "build-tools;23.0.2" "ndk;21.4.7075529"
 
       - name: Dependency Review
         uses: actions/dependency-review-action@v3
