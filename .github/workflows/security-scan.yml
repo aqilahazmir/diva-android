@@ -42,6 +42,10 @@ jobs:
         uses: android-actions/setup-android@v2
       - run: sdkmanager --install "ndk;21.4.7075529"
 
+      - name: Install Android SDK Platform 23 & Build Tools
+        run: |
+          sdkmanager --install "platforms;android-23" "build-tools;23.0.3"
+
       # Step 2: Switch to Java 8 for Gradle build
       - name: Setup Java 8 (for Gradle build)
         uses: actions/setup-java@v3
